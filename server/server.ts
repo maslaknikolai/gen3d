@@ -2,6 +2,8 @@
 // Also serves the built page in ../client/dist (cd client && npm run build). Run: cd server && npm start
 import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Readable } from "node:stream";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import express, { type NextFunction, type Request, type Response } from "express";
 
 const API_KEY = process.env.RUNPOD_API_KEY;
@@ -115,7 +117,8 @@ app.get("/api/generations", async (_req, res) => {
         id,
         createdAt: f.LastModified!.toISOString(),
         imageUrl: await signedUrl(f.Key!),
-        modelUrl: keys.has(modelKey) ? await signedUrl(modelKey) : undefined,
+        // Served by this server: the bucket sends no CORS headers, so <model-viewer> can not fetch it there.
+        modelUrl: keys.has(modelKey) ? `/api/generations/${id}/model.glb` : undefined,
       } satisfies Generation;
     }),
   );
@@ -140,6 +143,12 @@ app.get("/api/jobs/:id", async (req, res) => {
     return res.json({ status: "FAILED", error: "job finished without a mesh" });
   }
   res.json({ status: job.status, modelUrl: output.glb_url, resolution: output.resolution });
+});
+
+app.get("/api/generations/:id/model.glb", async (req, res) => {
+  const file = await s3.send(new GetObjectCommand({ Bucket: s3Config.bucketName, Key: `${req.params.id}.glb` }));
+  res.type("model/gltf-binary");
+  Readable.fromWeb(file.Body!.transformToWebStream() as WebReadableStream).pipe(res);
 });
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
