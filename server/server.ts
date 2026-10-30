@@ -37,7 +37,7 @@ const s3Config: S3Config = {
 type JobOutput = { glb_url?: string; resolution?: number };
 type RunpodJob = { id: string; status: string; output?: JobOutput; error?: string };
 
-async function runpod(path: string, body?: unknown): Promise<RunpodJob> {
+async function runpod<T = RunpodJob>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(RUNPOD_URL + path, {
     method: body === undefined ? "GET" : "POST",
     headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
@@ -46,7 +46,7 @@ async function runpod(path: string, body?: unknown): Promise<RunpodJob> {
   if (!res.ok) {
     throw new Error(`Runpod ${res.status}: ${await res.text()}`);
   }
-  return res.json() as Promise<RunpodJob>;
+  return res.json() as Promise<T>;
 }
 
 const app = express();
@@ -64,6 +64,11 @@ app.post("/api/jobs", async (req, res) => {
   }
   const job = await runpod("/run", { input: { image, resolution }, s3Config });
   res.json({ id: job.id });
+});
+
+// Runpod's own counts of jobs (inQueue, inProgress, ...) and workers (idle, running, throttled, ...).
+app.get("/api/health", async (_req, res) => {
+  res.json(await runpod<unknown>("/health"));
 });
 
 // Job ids go into the Runpod URL, so only allow plain id characters.
