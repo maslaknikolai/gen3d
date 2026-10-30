@@ -49,7 +49,8 @@ RUN pip3 install "${FLASH_ATTN_WHEEL}" \
 RUN pip3 install einops diffusers==0.32.2 opencv-python-headless pymeshlab scikit-image tqdm pyyaml runpod \
     && python -c "import rembg; rembg.new_session()"
 
-ENV HF_HUB_OFFLINE=1
+# PYTHONFAULTHANDLER prints a stack trace if the process crashes in native code.
+ENV HF_HUB_OFFLINE=1 PYTHONFAULTHANDLER=1
 
 COPY handler.py /handler.py
 

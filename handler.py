@@ -23,9 +23,12 @@ from sparc3d.utils.image import remove_background
 
 # Loaded once per worker. The coarse model waits on the CPU so the refiner gets the
 # whole GPU, as in Hi3D's demo/image_to_mesh.py.
+print("loading coarse model (Hunyuan3D-2 mini)")
 coarse = load_coarse_generator(device="cuda")
 coarse.to("cpu")  # Hunyuan's .to() returns None, so no chaining
+print("loading refiner (Hi3D v1.0)")
 refiner = Sparc3DPipeline.from_pretrained("hi3d-official/Hi3Dv1.0").to("cuda")
+print("models loaded, starting worker")
 
 
 def load_image(job_input: dict) -> Image.Image:
