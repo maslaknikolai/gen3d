@@ -50,7 +50,8 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
                   auto-rotate
                   camera-controls
                   shadow-intensity="1"
-                  className="block aspect-square h-auto w-full bg-white bg-[radial-gradient(#000_1.5px,transparent_1.5px)] bg-size-[18px_18px]"
+                  environment-image="neutral"
+                  className="block aspect-square h-auto w-full bg-black bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[18px_18px]"
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center p-2 text-center font-mono font-bold uppercase">
