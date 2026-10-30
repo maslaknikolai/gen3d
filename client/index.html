@@ -1,118 +1,13 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Image to 3D</title>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
-  <style>
-    :root { color-scheme: light dark; --bg: #f6f6f4; --fg: #1d1d1b; --muted: #6b6b66; --card: #fff; --accent: #0f766e; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #161615; --fg: #ececea; --muted: #9a9a94; --card: #222220; --accent: #2dd4bf; } }
-    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
-    main { max-width: 720px; margin: 0 auto; padding: 32px 16px; }
-    form, .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    label { display: block; margin-bottom: 12px; }
-    button, .download { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font: inherit; cursor: pointer; text-decoration: none; display: inline-block; }
-    button:disabled { opacity: .5; cursor: default; }
-    #preview { max-width: 160px; border-radius: 8px; display: block; margin-top: 8px; }
-    #status { color: var(--muted); }
-    model-viewer { width: 100%; height: 420px; background: var(--bg); border-radius: 8px; margin-bottom: 16px; }
-  </style>
-</head>
-<body>
-<main>
-  <h1>Image to 3D</h1>
-  <form id="form">
-    <label>Image
-      <input type="file" id="file" accept="image/*" required>
-      <img id="preview" hidden alt="Selected image">
-    </label>
-    <label>Resolution
-      <select id="resolution">
-        <option value="512">512 (fastest)</option>
-        <option value="1024" selected>1024</option>
-        <option value="1536">1536 (most detail)</option>
-      </select>
-    </label>
-    <button id="submit">Generate</button>
-  </form>
-
-  <div class="card" id="job" hidden>
-    <p id="status" role="status"></p>
-    <div id="result" hidden>
-      <model-viewer id="viewer" auto-rotate camera-controls shadow-intensity="1" alt="Generated 3D model"></model-viewer>
-      <a class="download" id="download" download="model.glb">Download .glb</a>
-    </div>
-  </div>
-</main>
-
-<script>
-  const $ = (id) => document.getElementById(id);
-  const POLL_MS = 3000;
-
-  $("file").addEventListener("change", () => {
-    const file = $("file").files[0];
-    if (!file) return;
-    $("preview").src = URL.createObjectURL(file);
-    $("preview").hidden = false;
-  });
-
-  function readAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function api(path, init) {
-    const res = await fetch(path, init);
-    const body = await res.json();
-    if (!res.ok) throw new Error(body.error || res.statusText);
-    return body;
-  }
-
-  $("form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    $("submit").disabled = true;
-    $("job").hidden = false;
-    $("result").hidden = true;
-    $("status").textContent = "Uploading...";
-    try {
-      const image = await readAsDataUrl($("file").files[0]);
-      const { id } = await api("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image, resolution: Number($("resolution").value) }),
-      });
-      await poll(id, Date.now());
-    } catch (err) {
-      $("status").textContent = `Error: ${err.message}`;
-    } finally {
-      $("submit").disabled = false;
-    }
-  });
-
-  async function poll(id, startedAt) {
-    while (true) {
-      const job = await api(`/api/jobs/${id}`);
-      const seconds = Math.round((Date.now() - startedAt) / 1000);
-      if (job.status === "COMPLETED") {
-        $("status").textContent = `Done in ${seconds}s${job.resolution ? ` (resolution ${job.resolution})` : ""}.`;
-        $("viewer").src = job.modelUrl;
-        $("download").href = job.modelUrl;
-        $("result").hidden = false;
-        return;
-      }
-      if (["FAILED", "CANCELLED", "TIMED_OUT"].includes(job.status)) {
-        throw new Error(`job ${job.status.toLowerCase()}${job.error ? `: ${job.error}` : ""}`);
-      }
-      // The first job on a cold worker takes a few minutes while the models load.
-      $("status").textContent = `${job.status === "IN_QUEUE" ? "Waiting for a GPU" : "Generating"}... ${seconds}s (job ${id})`;
-      await new Promise((r) => setTimeout(r, POLL_MS));
-    }
-  }
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image to 3D</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

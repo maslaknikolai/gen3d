@@ -15,17 +15,25 @@ Runs on a Runpod Serverless endpoint (H200, scales to zero).
 cp .env.example .env   # fill in RUNPOD_API_KEY and RUNPOD_ENDPOINT_ID
 cd server
 npm install
-npm start              # http://localhost:3000
+npm start              # http://localhost:3000, serves the built page from client/dist
 npm run typecheck
+```
+
+Page in dev mode (sends `/api` to the server on port 3000):
+
+```bash
+cd client
+npm install
+npm run dev            # http://localhost:5173
+npm run build          # makes client/dist for the server
 ```
 
 ## Deploy the server on Railway
 
 `railway.json` builds `server/Dockerfile` from the repo root. In the Railway service, leave Root Directory
 empty (the repo root) and set the variables `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`. Railway sets `PORT`.
-
-`server/meshes/` is on the container disk, so a redeploy wipes it. Add a Railway volume at `/app/server/meshes`
-to keep the meshes.
+Add a Railway Bucket and set the four `BUCKET_*` variables from `.env.example` as references to it: the worker
+uploads the mesh there, because the mesh is too big for the job result.
 
 ## Worker image
 

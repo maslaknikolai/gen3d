@@ -3,7 +3,8 @@
 Input:  {"image": "<base64 png/jpg, data: prefix allowed>" | "image_url": "https://...",
          "resolution": 512 | 1024 | 1536, "seed": 0, "num_inference_steps": 25,
          "remove_background": false}
-Output: {"glb_url": "..."} when BUCKET_* env is set, else {"glb_base64": "..."}; plus "resolution".
+Output: {"glb_url": "...", "resolution": ...}. The job must carry s3Config (bucket keys), because
+the mesh is too big for the job result.
 """
 
 import base64
@@ -43,6 +44,10 @@ def load_image(job_input: dict) -> Image.Image:
 
 def handler(job):
     job_input = job["input"]
+    # The server sends its bucket keys with the job (Runpod's s3Config), so the endpoint holds none.
+    creds = job.get("s3Config")
+    if not creds:
+        return {"error": "job has no s3Config: the mesh is too big for the job result"}
     resolution = int(job_input.get("resolution", 1024))
     if resolution not in (512, 1024, 1536):
         return {"error": "resolution must be 512, 1024 or 1536"}
@@ -68,13 +73,10 @@ def handler(job):
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, f"{job['id']}.glb")
         result.mesh.export(path)
-        if os.environ.get("BUCKET_ENDPOINT_URL"):
-            return {"glb_url": rp_upload.upload_file_to_bucket(f"{job['id']}.glb", path),
-                    "resolution": result.resolution}
-        # ponytail: base64 in the job result, fine for small meshes; big 1536 meshes can
-        # pass Runpod's result size limit, so set BUCKET_* env to upload to S3 instead.
-        with open(path, "rb") as f:
-            return {"glb_base64": base64.b64encode(f.read()).decode(), "resolution": result.resolution}
+        # Without bucket_name, rp_upload uses a bucket named after the month ("10-26").
+        url = rp_upload.upload_file_to_bucket(f"{job['id']}.glb", path, bucket_creds=creds,
+                                              bucket_name=creds["bucketName"])
+    return {"glb_url": url, "resolution": result.resolution}
 
 
 runpod.serverless.start({"handler": handler})
