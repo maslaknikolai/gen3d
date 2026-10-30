@@ -19,6 +19,14 @@ npm start              # http://localhost:3000
 npm run typecheck
 ```
 
+## Deploy the server on Railway
+
+`railway.json` builds `server/Dockerfile` from the repo root. In the Railway service, leave Root Directory
+empty (the repo root) and set the variables `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`. Railway sets `PORT`.
+
+`server/meshes/` is on the container disk, so a redeploy wipes it. Add a Railway volume at `/app/server/meshes`
+to keep the meshes.
+
 ## Worker image
 
 Runpod builds `runpod/Dockerfile` from GitHub on every push to the branch `_branch_to_trigger_runpad_rebuild`
