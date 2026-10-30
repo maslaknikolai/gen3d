@@ -30,7 +30,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
   return (
     <section className="space-y-4">
       <h2 className="border-b-4 border-black pb-1 text-2xl font-black uppercase">Generated</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {generations.map((g) => (
           <article key={g.id} className="border-4 border-black">
             <div className="grid grid-cols-2 border-b-4 border-black">
