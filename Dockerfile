@@ -45,7 +45,8 @@ RUN pip3 install "${FLASH_ATTN_WHEEL}" \
 
 # hy3dgen is used from PYTHONPATH, not pip-installed: its setup.py wants transformers>=4.48,
 # which conflicts with Hi3D's pinned 4.46.3. These are its shapegen imports (docs/installation.md).
-RUN pip3 install einops diffusers opencv-python-headless pymeshlab scikit-image tqdm pyyaml runpod \
+# diffusers pinned: newer releases call torch.accelerator, which torch 2.5 does not have.
+RUN pip3 install einops diffusers==0.32.2 opencv-python-headless pymeshlab scikit-image tqdm pyyaml runpod \
     && python -c "import rembg; rembg.new_session()"
 
 ENV HF_HUB_OFFLINE=1
