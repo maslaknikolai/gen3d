@@ -24,9 +24,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Weights (~15 GB) baked into the image, so a cold start downloads nothing. Done early so
 # a later pip or code change reuses this cached layer instead of downloading again.
+# Hi3D goes to a plain folder (local_dir = real files): its loader rejects the symlinks of
+# the Hugging Face cache, and it reads only these 8 files.
 RUN pip3 install "huggingface-hub<1" && python -c "\
 from huggingface_hub import snapshot_download as d; \
-d('hi3d-official/Hi3Dv1.0', allow_patterns=['model_index.json', 'scheduler/*', 'vae/*', 'transformer_512/*', 'transformer_1024/*']); \
+d('hi3d-official/Hi3Dv1.0', local_dir='/models/hi3d', allow_patterns=['model_index.json', 'scheduler/*', 'vae/*', 'transformer_512/*', 'transformer_1024/*']); \
 d('tencent/Hunyuan3D-2mini', allow_patterns=['hunyuan3d-dit-v2-mini-turbo/config.yaml', 'hunyuan3d-dit-v2-mini-turbo/model.fp16.safetensors']); \
 d('facebook/dinov2-large', allow_patterns=['*.json', '*.txt', 'model.safetensors']); \
 d('openai/clip-vit-large-patch14', allow_patterns=['*.json', '*.txt', 'model.safetensors'])"
@@ -52,6 +54,7 @@ RUN pip3 install einops diffusers==0.32.2 opencv-python-headless pymeshlab sciki
 # PYTHONFAULTHANDLER prints a stack trace if the process crashes in native code.
 ENV HF_HUB_OFFLINE=1 PYTHONFAULTHANDLER=1
 
-COPY handler.py /handler.py
+# The build context is the repo root, so paths start with runpod/.
+COPY runpod/handler.py /handler.py
 
 CMD ["python", "-u", "/handler.py"]

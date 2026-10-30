@@ -27,7 +27,7 @@ print("loading coarse model (Hunyuan3D-2 mini)")
 coarse = load_coarse_generator(device="cuda")
 coarse.to("cpu")  # Hunyuan's .to() returns None, so no chaining
 print("loading refiner (Hi3D v1.0)")
-refiner = Sparc3DPipeline.from_pretrained("hi3d-official/Hi3Dv1.0").to("cuda")
+refiner = Sparc3DPipeline.from_pretrained("/models/hi3d").to("cuda")  # baked in by the Dockerfile
 print("models loaded, starting worker")
 
 

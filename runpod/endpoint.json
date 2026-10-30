@@ -1,0 +1,16 @@
+{
+  "endpointId": "ksi4f805wsqkoe",
+  "settings": {
+    "name": "gen3d",
+    "gpu": {
+      "pools": ["HOPPER_141", "ADA_80_PRO"],
+      "count": 1,
+      "minCudaVersion": "12.4"
+    },
+    "workers": { "min": 0, "max": 1, "idleTimeout": 5 },
+    "scaling": { "type": "QUEUE_DELAY", "queueDelay": 4 },
+    "timeout": 1800000,
+    "flashboot": "FLASHBOOT",
+    "disk": 20
+  }
+}
