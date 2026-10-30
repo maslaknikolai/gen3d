@@ -1,6 +1,6 @@
 # gen3d
 
-Image to 3D mesh: Hunyuan3D-2 mini makes a rough mesh, Hi3D v1.0 refines it, the result is a `.glb`.
+Image to 3D mesh: Hunyuan3D-2 mini makes a rough mesh, [Hi3D v1.0](https://huggingface.co/hi3d-official/Hi3Dv1.0) refines it, the result is a `.glb`.
 Runs on a Runpod Serverless endpoint (H200, scales to zero).
 
 | Folder | What |
