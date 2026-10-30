@@ -42,8 +42,8 @@ export function Generator({ onSent }: { onSent: () => void }) {
 
   return (
     <>
-      <form onSubmit={onSubmit} className="space-y-5 border-4 border-black p-5">
-        <label className="block">
+      <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-4 border-4 border-black p-5">
+        <label className="min-w-60 flex-1">
           <span className="mb-2 block font-bold uppercase">Image</span>
           <input
             type="file"
@@ -53,14 +53,14 @@ export function Generator({ onSent }: { onSent: () => void }) {
             className="block w-full file:mr-3 file:cursor-pointer file:border-4 file:border-black file:bg-white file:px-3 file:py-1 file:font-bold file:uppercase hover:file:bg-black hover:file:text-white"
           />
         </label>
-        {file && <img src={URL.createObjectURL(file)} alt="Selected image" className="max-w-40 border-4 border-black" />}
+        {file && <img src={URL.createObjectURL(file)} alt="Selected image" className="size-16 border-4 border-black object-contain" />}
 
-        <label className="block">
+        <label>
           <span className="mb-2 block font-bold uppercase">Resolution</span>
           <select
             value={resolution}
             onChange={(e) => setResolution(Number(e.target.value))}
-            className="border-4 border-black bg-white px-3 py-1 font-bold"
+            className="border-4 border-black bg-white px-3 py-2 font-bold"
           >
             {RESOLUTIONS.map((r) => (
               <option key={r} value={r}>

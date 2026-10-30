@@ -11,7 +11,8 @@ declare module 'react' {
         'auto-rotate'?: boolean
         'camera-controls'?: boolean
         'shadow-intensity'?: string
-        'environment-image'?: string
+        'shadow-softness'?: string
+        exposure?: string
         loading?: 'auto' | 'lazy' | 'eager'
       }
     }

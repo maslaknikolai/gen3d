@@ -1,7 +1,7 @@
-import '@google/model-viewer'
 import { useEffect, useState } from 'react'
 import { api } from './api'
 import { JobStatus } from './JobStatus'
+import { ModelView } from './ModelView'
 
 type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
@@ -43,16 +43,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
                 <img src={g.imageUrl} alt="Input image" className="aspect-square w-full object-contain" />
               </a>
               {g.modelUrl ? (
-                <model-viewer
-                  src={g.modelUrl}
-                  alt="Generated 3D model"
-                  loading="lazy"
-                  auto-rotate
-                  camera-controls
-                  shadow-intensity="1"
-                  environment-image="neutral"
-                  className="block aspect-square h-auto w-full bg-black bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[18px_18px]"
-                />
+                <ModelView src={g.modelUrl} />
               ) : (
                 <div className="flex aspect-square items-center justify-center p-2 text-center font-mono font-bold uppercase">
                   <JobStatus id={g.id} onDone={onChange} />
