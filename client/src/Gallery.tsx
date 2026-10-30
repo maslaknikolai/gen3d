@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { callApi } from './api'
 import { JobStatus } from './JobStatus'
 import { ModelView } from './ModelView'
+import { Spinner } from './Spinner'
 
 type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
@@ -13,26 +14,31 @@ function makeFileName(createdAt: string): string {
 export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: () => void }) {
   const [generations, setGenerations] = useState<Generation[]>([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    setLoading(true)
     callApi<Generation[]>('/api/generations')
       .then((list) => {
         setGenerations(list)
         setError('')
       })
       .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [reloadKey])
 
   if (error) {
     return <p className="border-4 border-black p-3 font-mono font-bold">Gallery error: {error}</p>
   }
   if (generations.length === 0) {
-    return null
+    return loading ? <Spinner /> : null
   }
 
   return (
     <section className="space-y-4">
-      <h2 className="border-b-4 border-black pb-1 text-2xl font-black uppercase">Generated</h2>
+      <h2 className="flex items-center gap-3 border-b-4 border-black pb-1 text-2xl font-black uppercase">
+        Generated {loading && <Spinner />}
+      </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {generations.map((g) => (
           <article key={g.id} className="border-4 border-black">

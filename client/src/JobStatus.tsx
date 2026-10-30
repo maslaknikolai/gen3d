@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { callApi } from './api'
+import { Spinner } from './Spinner'
 
 const POLL_MS = 3000
 const FINAL = ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMED_OUT']
@@ -25,10 +26,12 @@ function getLastState(line: string): string {
 export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
   const [job, setJob] = useState<Job>()
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>
     async function poll() {
+      setLoading(true)
       try {
         const next = await callApi<Job>(`/api/jobs/${id}`)
         setJob(next)
@@ -43,6 +46,8 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
         // Runpod forgets a job ~30 min after it ends.
         setError((err as Error).message)
         return
+      } finally {
+        setLoading(false)
       }
       timer = setTimeout(poll, POLL_MS)
     }
@@ -54,14 +59,15 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
     return <div>{error}</div>
   }
   if (!job) {
-    return <div>Checking...</div>
+    return <Spinner />
   }
   const logs = job.logs.map(getLastState)
   return (
     <div className="flex h-full w-full flex-col gap-2 text-left">
-      <div>
+      <div className="flex items-center gap-2">
         {job.status}
         {job.error ? `: ${job.error}` : ''}
+        {loading && <Spinner />}
       </div>
       <div className="text-xs normal-case">
         worker {job.workerId ?? '-'} · queue {formatSeconds(job.delayTime)} · run {formatSeconds(job.executionTime)}

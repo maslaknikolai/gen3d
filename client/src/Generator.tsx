@@ -1,5 +1,6 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
 import { callApi } from './api'
+import { Spinner } from './Spinner'
 
 const RESOLUTIONS = [512, 1024, 1536]
 
@@ -83,7 +84,7 @@ export function Generator({ onSent }: { onSent: () => void }) {
           disabled={busy || !file}
           className="cursor-pointer border-4 border-black bg-black px-5 py-2 font-bold text-white uppercase hover:bg-white hover:text-black disabled:cursor-default disabled:bg-white disabled:text-black disabled:opacity-40"
         >
-          Generate
+          {busy ? <Spinner /> : 'Generate'}
         </button>
       </form>
 
