@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import { api } from './api'
 
 const RESOLUTIONS = [512, 1024, 1536]
@@ -18,6 +18,18 @@ export function Generator({ onSent }: { onSent: () => void }) {
   const [resolution, setResolution] = useState(1024)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Ctrl+V / Cmd+V anywhere on the page takes an image from the clipboard.
+  useEffect(() => {
+    function onPaste(event: ClipboardEvent) {
+      const image = [...(event.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
+      if (image) {
+        setFile(image)
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [])
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -44,11 +56,10 @@ export function Generator({ onSent }: { onSent: () => void }) {
     <>
       <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-4 border-4 border-black p-5">
         <label className="min-w-60 flex-1">
-          <span className="mb-2 block font-bold uppercase">Image</span>
+          <span className="mb-2 block font-bold uppercase">Image (or paste)</span>
           <input
             type="file"
             accept="image/*"
-            required
             onChange={(e) => setFile(e.target.files?.[0])}
             className="block w-full file:mr-3 file:cursor-pointer file:border-4 file:border-black file:bg-white file:px-3 file:py-1 file:font-bold file:uppercase hover:file:bg-black hover:file:text-white"
           />
