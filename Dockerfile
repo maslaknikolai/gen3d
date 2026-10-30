@@ -42,6 +42,17 @@ RUN pip3 install packaging ninja psutil \
 # which conflicts with Hi3D's pinned 4.46.3. These are its shapegen imports (docs/installation.md).
 RUN pip3 install einops diffusers opencv-python-headless pymeshlab scikit-image tqdm pyyaml runpod
 
+# Weights (~15 GB) baked into the image, so a cold start downloads nothing.
+ENV HF_HOME=/models/hf U2NET_HOME=/models/u2net
+RUN python -c "\
+from huggingface_hub import snapshot_download as d; \
+d('hi3d-official/Hi3Dv1.0'); \
+d('tencent/Hunyuan3D-2mini', allow_patterns=['hunyuan3d-dit-v2-mini-turbo/config.yaml', 'hunyuan3d-dit-v2-mini-turbo/model.fp16.safetensors']); \
+d('facebook/dinov2-large', allow_patterns=['*.json', '*.txt', 'model.safetensors']); \
+d('openai/clip-vit-large-patch14', allow_patterns=['*.json', '*.txt', 'model.safetensors'])" \
+    && python -c "import rembg; rembg.new_session()"
+ENV HF_HUB_OFFLINE=1
+
 COPY handler.py /handler.py
 
 CMD ["python", "-u", "/handler.py"]

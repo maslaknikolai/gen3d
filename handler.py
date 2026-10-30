@@ -12,12 +12,6 @@ import os
 import tempfile
 import urllib.request
 
-# Weights (~15 GB) go on the network volume when one is attached, so only the first
-# worker downloads them.
-if os.path.isdir("/runpod-volume"):
-    os.environ.setdefault("HF_HOME", "/runpod-volume/hf")
-    os.environ.setdefault("U2NET_HOME", "/runpod-volume/u2net")
-
 import runpod
 import torch
 from PIL import Image
