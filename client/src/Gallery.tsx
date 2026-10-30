@@ -39,7 +39,9 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
         {generations.map((g) => (
           <article key={g.id} className="border-4 border-black">
             <div className="grid grid-cols-2 border-b-4 border-black">
-              <img src={g.imageUrl} alt="Input image" className="aspect-square w-full border-r-4 border-black object-contain" />
+              <a href={g.imageUrl} target="_blank" rel="noreferrer" className="border-r-4 border-black">
+                <img src={g.imageUrl} alt="Input image" className="aspect-square w-full object-contain" />
+              </a>
               {g.modelUrl ? (
                 <model-viewer
                   src={g.modelUrl}
