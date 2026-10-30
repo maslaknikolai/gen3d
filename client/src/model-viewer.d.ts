@@ -10,6 +10,7 @@ declare module 'react' {
         alt?: string
         'auto-rotate'?: boolean
         'camera-controls'?: boolean
+        loading?: 'auto' | 'lazy' | 'eager'
       }
     }
   }

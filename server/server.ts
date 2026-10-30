@@ -1,5 +1,7 @@
 // Small proxy in front of the Runpod endpoint, so the API key stays on the server.
 // Also serves the built page in ../client/dist (cd client && npm run build). Run: cd server && npm start
+import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import express, { type NextFunction, type Request, type Response } from "express";
 
 const API_KEY = process.env.RUNPOD_API_KEY;
@@ -34,6 +36,23 @@ const s3Config: S3Config = {
   bucketName: process.env.BUCKET_NAME!,
 };
 
+// Each generation is two files in the bucket: <job id>.image (from the server) and
+// <job id>.glb (from the worker).
+const s3 = new S3Client({
+  endpoint: s3Config.endpointUrl,
+  region: "auto",
+  credentials: { accessKeyId: s3Config.accessId, secretAccessKey: s3Config.accessSecret },
+});
+const LINK_SECONDS = 60 * 60;
+
+function signedUrl(key: string): Promise<string> {
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: s3Config.bucketName, Key: key }), {
+    expiresIn: LINK_SECONDS,
+  });
+}
+
+type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string };
+
 type JobOutput = { glb_url?: string; resolution?: number };
 type RunpodJob = { id: string; status: string; output?: JobOutput; error?: string };
 
@@ -63,12 +82,44 @@ app.post("/api/jobs", async (req, res) => {
     return res.status(400).json({ error: `resolution must be one of ${RESOLUTIONS.join(", ")}` });
   }
   const job = await runpod("/run", { input: { image, resolution }, s3Config });
+  const [header, data] = image.split(",", 2);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: s3Config.bucketName,
+      Key: `${job.id}.image`,
+      Body: Buffer.from(data, "base64"),
+      ContentType: header.slice("data:".length).split(";")[0],
+    }),
+  );
   res.json({ id: job.id });
 });
 
 // Runpod's own counts of jobs (inQueue, inProgress, ...) and workers (idle, running, throttled, ...).
 app.get("/api/health", async (_req, res) => {
   res.json(await runpod<unknown>("/health"));
+});
+
+// Past generations from the bucket, newest first, with fresh links.
+// ponytail: reads one page (up to 1000 files, so about 500 generations); page through when it grows.
+app.get("/api/generations", async (_req, res) => {
+  const list = await s3.send(new ListObjectsV2Command({ Bucket: s3Config.bucketName }));
+  const files = list.Contents ?? [];
+  const keys = new Set(files.map((f) => f.Key));
+  const images = files.filter((f) => f.Key?.endsWith(".image"));
+  images.sort((a, b) => (b.LastModified?.getTime() ?? 0) - (a.LastModified?.getTime() ?? 0));
+  const generations = await Promise.all(
+    images.map(async (f): Promise<Generation> => {
+      const id = f.Key!.slice(0, -".image".length);
+      const modelKey = `${id}.glb`;
+      return {
+        id,
+        createdAt: f.LastModified!.toISOString(),
+        imageUrl: await signedUrl(f.Key!),
+        modelUrl: keys.has(modelKey) ? await signedUrl(modelKey) : undefined,
+      } satisfies Generation;
+    }),
+  );
+  res.json(generations);
 });
 
 // Job ids go into the Runpod URL, so only allow plain id characters.

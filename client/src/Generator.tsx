@@ -16,7 +16,7 @@ function readAsDataUrl(file: File): Promise<string> {
   })
 }
 
-export function Generator() {
+export function Generator({ onDone }: { onDone: () => void }) {
   const [file, setFile] = useState<File>()
   const [resolution, setResolution] = useState(1024)
   const [busy, setBusy] = useState(false)
@@ -44,6 +44,7 @@ export function Generator() {
         if (job.status === 'COMPLETED') {
           setStatus(`Done in ${seconds}s (resolution ${job.resolution}).`)
           setModelUrl(job.modelUrl)
+          onDone()
           break
         }
         if (['FAILED', 'CANCELLED', 'TIMED_OUT'].includes(job.status)) {
