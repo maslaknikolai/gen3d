@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react'
-import { api } from './api'
+import { callApi } from './api'
 import { JobStatus } from './JobStatus'
 import { ModelView } from './ModelView'
 
 type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
-// gen3d_2026-10-30_10-42-25.glb (UTC), colons are not allowed in Windows file names.
-function fileName(createdAt: string): string {
+// No colons: Windows does not allow them in file names.
+function makeFileName(createdAt: string): string {
   return `gen3d_${createdAt.slice(0, 19).replace('T', '_').replaceAll(':', '-')}.glb`
 }
 
-// Past generations from the bucket: the input image and its model, one card each.
-// reloadKey changes when a job is sent and when it is done, so new cards show up.
 export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: () => void }) {
   const [generations, setGenerations] = useState<Generation[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api<Generation[]>('/api/generations')
+    callApi<Generation[]>('/api/generations')
       .then((list) => {
         setGenerations(list)
         setError('')
@@ -45,7 +43,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
               {g.modelUrl ? (
                 <ModelView src={g.modelUrl} />
               ) : (
-                <div className="flex aspect-square items-center justify-center p-2 text-center font-mono font-bold uppercase">
+                <div className="flex aspect-square overflow-hidden p-2 font-mono text-sm font-bold uppercase">
                   <JobStatus id={g.id} onDone={onChange} />
                 </div>
               )}
@@ -53,7 +51,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
             <div className="flex items-center justify-between gap-2 p-2 font-mono text-sm font-bold">
               <span>{new Date(g.createdAt).toLocaleString()}</span>
               {g.modelUrl && (
-                <a href={g.modelUrl} download={fileName(g.createdAt)} className="border-4 border-black bg-black px-3 py-1 text-white uppercase hover:bg-white hover:text-black">
+                <a href={g.modelUrl} download={makeFileName(g.createdAt)} className="border-4 border-black bg-black px-3 py-1 text-white uppercase hover:bg-white hover:text-black">
                   .glb
                 </a>
               )}

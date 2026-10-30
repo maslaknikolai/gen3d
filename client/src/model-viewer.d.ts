@@ -1,4 +1,3 @@
-// JSX type for the <model-viewer> web component from @google/model-viewer.
 import type { ModelViewerElement } from '@google/model-viewer'
 import type { DetailedHTMLProps, HTMLAttributes } from 'react'
 
@@ -13,6 +12,7 @@ declare module 'react' {
         'shadow-intensity'?: string
         'shadow-softness'?: string
         exposure?: string
+        'environment-image'?: string
         loading?: 'auto' | 'lazy' | 'eager'
       }
     }

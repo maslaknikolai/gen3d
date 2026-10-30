@@ -5,6 +5,5 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // In dev, send API calls to the server (cd server && npm start).
   server: { proxy: { '/api': 'http://localhost:3000' } },
 })

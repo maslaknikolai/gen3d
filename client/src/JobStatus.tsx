@@ -1,13 +1,27 @@
 import { useEffect, useState } from 'react'
-import { api } from './api'
+import { callApi } from './api'
 
 const POLL_MS = 3000
 const FINAL = ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMED_OUT']
 
-type Job = { status: string; error?: string }
+type Job = {
+  status: string
+  error?: string
+  workerId?: string
+  delayTime?: number
+  executionTime?: number
+  logs: string[]
+}
 
-// Live Runpod status of one job, for a gallery card that has no model yet.
-// Calls onDone when the job finishes, so the gallery reloads and gets the model.
+function formatSeconds(ms?: number): string {
+  return ms === undefined ? '-' : `${Math.round(ms / 1000)}s`
+}
+
+// Progress bars redraw one line with \r.
+function getLastState(line: string): string {
+  return line.split('\r').filter(Boolean).pop() ?? ''
+}
+
 export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
   const [job, setJob] = useState<Job>()
   const [error, setError] = useState('')
@@ -16,7 +30,7 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
     let timer: ReturnType<typeof setTimeout>
     async function poll() {
       try {
-        const next = await api<Job>(`/api/jobs/${id}`)
+        const next = await callApi<Job>(`/api/jobs/${id}`)
         setJob(next)
         setError('')
         if (next.status === 'COMPLETED') {
@@ -26,6 +40,7 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
           return
         }
       } catch (err) {
+        // Runpod forgets a job ~30 min after it ends.
         setError((err as Error).message)
         return
       }
@@ -36,15 +51,26 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
   }, [id, onDone])
 
   if (error) {
-    return <span>{error}</span>
+    return <div>{error}</div>
   }
   if (!job) {
-    return <span>Checking...</span>
+    return <div>Checking...</div>
   }
+  const logs = job.logs.map(getLastState)
   return (
-    <span>
-      {job.status}
-      {job.error ? `: ${job.error}` : ''}
-    </span>
+    <div className="flex h-full w-full flex-col gap-2 text-left">
+      <div>
+        {job.status}
+        {job.error ? `: ${job.error}` : ''}
+      </div>
+      <div className="text-xs normal-case">
+        worker {job.workerId ?? '-'} · queue {formatSeconds(job.delayTime)} · run {formatSeconds(job.executionTime)}
+      </div>
+      {logs.length > 0 && (
+        <pre className="min-h-0 flex-1 overflow-auto bg-black p-2 text-[10px] leading-tight font-normal whitespace-pre-wrap normal-case text-white">
+          {logs.join('\n')}
+        </pre>
+      )}
+    </div>
   )
 }

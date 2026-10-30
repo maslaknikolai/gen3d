@@ -22,8 +22,7 @@ from coarse_stage import generate_coarse_mesh, load_coarse_generator
 from sparc3d import Sparc3DPipeline
 from sparc3d.utils.image import remove_background
 
-# Loaded once per worker. The coarse model waits on the CPU so the refiner gets the
-# whole GPU, as in Hi3D's demo/image_to_mesh.py.
+# The coarse model waits on the CPU so the refiner gets the whole GPU.
 print("loading coarse model (Hunyuan3D-2 mini)")
 coarse = load_coarse_generator(device="cuda")
 coarse.to("cpu")  # Hunyuan's .to() returns None, so no chaining
@@ -44,7 +43,6 @@ def load_image(job_input: dict) -> Image.Image:
 
 def handler(job):
     job_input = job["input"]
-    # The server sends its bucket keys with the job (Runpod's s3Config), so the endpoint holds none.
     creds = job.get("s3Config")
     if not creds:
         return {"error": "job has no s3Config: the mesh is too big for the job result"}

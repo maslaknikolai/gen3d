@@ -1,5 +1,5 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
-import { api } from './api'
+import { callApi } from './api'
 
 const RESOLUTIONS = [512, 1024, 1536]
 
@@ -12,14 +12,12 @@ function readAsDataUrl(file: File): Promise<string> {
   })
 }
 
-// Only sends the job. Its status and model show up in the gallery card.
 export function Generator({ onSent }: { onSent: () => void }) {
   const [file, setFile] = useState<File>()
   const [resolution, setResolution] = useState(1024)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  // Ctrl+V / Cmd+V anywhere on the page takes an image from the clipboard.
   useEffect(() => {
     function onPaste(event: ClipboardEvent) {
       const image = [...(event.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
@@ -39,7 +37,7 @@ export function Generator({ onSent }: { onSent: () => void }) {
     setBusy(true)
     setError('')
     try {
-      await api<{ id: string }>('/api/jobs', {
+      await callApi<{ id: string }>('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: await readAsDataUrl(file), resolution }),
