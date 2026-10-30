@@ -21,6 +21,14 @@ npm run typecheck
 
 ## Worker image
 
-Runpod builds `runpod/Dockerfile` from GitHub on every push to `main`. The build context is the repo root,
-so the Dockerfile path in the endpoint's Repository Configuration must be `runpod/Dockerfile`.
-That path can only be set in the Runpod console.
+Runpod builds `runpod/Dockerfile` from GitHub on every push to the branch `_branch_to_trigger_runpad_rebuild`
+(a push to `main` does not start a build). To rebuild the worker from `main`:
+
+```bash
+git push origin main:_branch_to_trigger_runpad_rebuild
+```
+
+The build context is the repo root, so the Dockerfile path in the endpoint's Repository Configuration
+must be `runpod/Dockerfile`. The branch and the path can only be set in the Runpod console.
+
+Endpoint: `gen3d`, id `ksi4f805wsqkoe`.
