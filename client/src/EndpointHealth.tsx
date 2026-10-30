@@ -26,14 +26,14 @@ export function EndpointHealth() {
 
   const row = (title: string, counts: Record<string, number>) => (
     <div>
-      <span className="font-medium">{title}:</span>{' '}
+      <span className="font-bold uppercase">{title}:</span>{' '}
       {Object.entries(counts).map(([name, n]) => `${name} ${n}`).join(', ')}
     </div>
   )
 
   return (
-    <div className="rounded-xl bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-800">
-      {error && <div className="text-red-600">Health error: {error}</div>}
+    <div className="border-4 border-black bg-black p-4 font-mono text-sm text-white">
+      {error && <div className="font-bold">Health error: {error}</div>}
       {!health && !error && 'Loading endpoint status...'}
       {health && row('Jobs', health.jobs)}
       {health && row('Workers', health.workers)}

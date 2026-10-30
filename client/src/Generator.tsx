@@ -63,26 +63,25 @@ export function Generator() {
 
   return (
     <>
-
-      <form onSubmit={onSubmit} className="space-y-4 rounded-xl bg-neutral-100 p-5 dark:bg-neutral-800">
+      <form onSubmit={onSubmit} className="space-y-5 border-4 border-black p-5">
         <label className="block">
-          <span className="mb-1 block text-sm">Image</span>
+          <span className="mb-2 block font-bold uppercase">Image</span>
           <input
             type="file"
             accept="image/*"
             required
             onChange={(e) => setFile(e.target.files?.[0])}
-            className="block w-full text-sm"
+            className="block w-full file:mr-3 file:cursor-pointer file:border-4 file:border-black file:bg-white file:px-3 file:py-1 file:font-bold file:uppercase hover:file:bg-black hover:file:text-white"
           />
         </label>
-        {file && <img src={URL.createObjectURL(file)} alt="Selected image" className="max-w-40 rounded-lg" />}
+        {file && <img src={URL.createObjectURL(file)} alt="Selected image" className="max-w-40 border-4 border-black" />}
 
         <label className="block">
-          <span className="mb-1 block text-sm">Resolution</span>
+          <span className="mb-2 block font-bold uppercase">Resolution</span>
           <select
             value={resolution}
             onChange={(e) => setResolution(Number(e.target.value))}
-            className="rounded-md border border-neutral-300 bg-transparent px-2 py-1 dark:border-neutral-600"
+            className="border-4 border-black bg-white px-3 py-1 font-bold"
           >
             {RESOLUTIONS.map((r) => (
               <option key={r} value={r}>
@@ -94,14 +93,14 @@ export function Generator() {
 
         <button
           disabled={busy || !file}
-          className="rounded-lg bg-teal-700 px-4 py-2 text-white disabled:opacity-50"
+          className="cursor-pointer border-4 border-black bg-black px-5 py-2 font-bold text-white uppercase hover:bg-white hover:text-black disabled:cursor-default disabled:bg-white disabled:text-black disabled:opacity-40"
         >
           Generate
         </button>
       </form>
 
       {status && (
-        <p role="status" className="text-neutral-500">
+        <p role="status" className="border-4 border-black p-3 font-mono font-bold">
           {status}
         </p>
       )}
@@ -113,9 +112,9 @@ export function Generator() {
             alt="Generated 3D model"
             auto-rotate
             camera-controls
-            className="block h-105 w-full rounded-lg bg-neutral-100 dark:bg-neutral-800"
+            className="block h-105 w-full border-4 border-black bg-white"
           />
-          <a href={modelUrl} download="model.glb" className="inline-block rounded-lg bg-teal-700 px-4 py-2 text-white">
+          <a href={modelUrl} download="model.glb" className="inline-block border-4 border-black bg-black px-5 py-2 font-bold text-white uppercase hover:bg-white hover:text-black">
             Download .glb
           </a>
         </div>

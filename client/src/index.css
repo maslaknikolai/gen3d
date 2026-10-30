@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Black and white only, also in dark mode. */
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-white text-black antialiased;
+}
