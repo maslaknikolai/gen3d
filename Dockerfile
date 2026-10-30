@@ -13,7 +13,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_CONSTRAINT=/opt/hi3d/docker/constraints.txt \
     TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
     MAX_JOBS=16 \
     PYTHONPATH=/opt/hunyuan:/opt/hi3d/demo
@@ -27,6 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git clone https://github.com/hi3d-official/Hi3Dv1.0.git /opt/hi3d && git -C /opt/hi3d checkout ${HI3D_REF} \
     && git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.git /opt/hunyuan && git -C /opt/hunyuan checkout ${HUNYUAN_REF}
+
+# Set only now: pip fails on every install while this file does not exist yet.
+ENV PIP_CONSTRAINT=/opt/hi3d/docker/constraints.txt
 
 RUN pip3 install --extra-index-url https://download.pytorch.org/whl/cu124 \
         torch==2.5.0+cu124 torchvision==0.20.0+cu124
