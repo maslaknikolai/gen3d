@@ -49,7 +49,8 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
                   loading="lazy"
                   auto-rotate
                   camera-controls
-                  className="block aspect-square h-auto w-full bg-white"
+                  shadow-intensity="1"
+                  className="block aspect-square h-auto w-full bg-white bg-[radial-gradient(#000_1.5px,transparent_1.5px)] bg-size-[18px_18px]"
                 />
               ) : (
                 <div className="flex aspect-square items-center justify-center p-2 text-center font-mono font-bold uppercase">
