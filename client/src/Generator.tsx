@@ -1,11 +1,7 @@
-import '@google/model-viewer'
 import { useState, type SubmitEvent } from 'react'
 import { api } from './api'
 
-const POLL_MS = 3000
 const RESOLUTIONS = [512, 1024, 1536]
-
-type Job = { status: string; error?: string; modelUrl?: string; resolution?: number }
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -16,12 +12,12 @@ function readAsDataUrl(file: File): Promise<string> {
   })
 }
 
-export function Generator({ onDone }: { onDone: () => void }) {
+// Only sends the job. Its status and model show up in the gallery card.
+export function Generator({ onSent }: { onSent: () => void }) {
   const [file, setFile] = useState<File>()
   const [resolution, setResolution] = useState(1024)
   const [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState('')
-  const [modelUrl, setModelUrl] = useState<string>()
+  const [error, setError] = useState('')
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -29,34 +25,16 @@ export function Generator({ onDone }: { onDone: () => void }) {
       return
     }
     setBusy(true)
-    setModelUrl(undefined)
-    setStatus('Uploading...')
-    const startedAt = Date.now()
+    setError('')
     try {
-      const { id } = await api<{ id: string }>('/api/jobs', {
+      await api<{ id: string }>('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: await readAsDataUrl(file), resolution }),
       })
-      while (true) {
-        const job = await api<Job>(`/api/jobs/${id}`)
-        const seconds = Math.round((Date.now() - startedAt) / 1000)
-        if (job.status === 'COMPLETED') {
-          setStatus(`Done in ${seconds}s (resolution ${job.resolution}).`)
-          setModelUrl(job.modelUrl)
-          onDone()
-          break
-        }
-        if (['FAILED', 'CANCELLED', 'TIMED_OUT'].includes(job.status)) {
-          throw new Error(`job ${job.status.toLowerCase()}${job.error ? `: ${job.error}` : ''}`)
-        }
-        // The first job on a cold worker takes a few minutes while the models load.
-        const what = job.status === 'IN_QUEUE' ? 'Waiting for a GPU' : 'Generating'
-        setStatus(`${what}... ${seconds}s (job ${id})`)
-        await new Promise((r) => setTimeout(r, POLL_MS))
-      }
+      onSent()
     } catch (err) {
-      setStatus(`Error: ${(err as Error).message}`)
+      setError((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -100,25 +78,10 @@ export function Generator({ onDone }: { onDone: () => void }) {
         </button>
       </form>
 
-      {status && (
-        <p role="status" className="border-4 border-black p-3 font-mono font-bold">
-          {status}
+      {error && (
+        <p role="alert" className="border-4 border-black p-3 font-mono font-bold">
+          Error: {error}
         </p>
-      )}
-
-      {modelUrl && (
-        <div className="space-y-3">
-          <model-viewer
-            src={modelUrl}
-            alt="Generated 3D model"
-            auto-rotate
-            camera-controls
-            className="block h-105 w-full border-4 border-black bg-white"
-          />
-          <a href={modelUrl} download="model.glb" className="inline-block border-4 border-black bg-black px-5 py-2 font-bold text-white uppercase hover:bg-white hover:text-black">
-            Download .glb
-          </a>
-        </div>
       )}
     </>
   )

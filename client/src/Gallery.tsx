@@ -1,12 +1,13 @@
 import '@google/model-viewer'
 import { useEffect, useState } from 'react'
 import { api } from './api'
+import { JobStatus } from './JobStatus'
 
 type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
 // Past generations from the bucket: the input image and its model, one card each.
-// reloadKey changes after each finished job, so the new one shows up.
-export function Gallery({ reloadKey }: { reloadKey: number }) {
+// reloadKey changes when a job is sent and when it is done, so new cards show up.
+export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: () => void }) {
   const [generations, setGenerations] = useState<Generation[]>([])
   const [error, setError] = useState('')
 
@@ -44,7 +45,9 @@ export function Gallery({ reloadKey }: { reloadKey: number }) {
                   className="block aspect-square h-auto w-full bg-white"
                 />
               ) : (
-                <div className="flex aspect-square items-center justify-center font-bold uppercase">No model</div>
+                <div className="flex aspect-square items-center justify-center p-2 text-center font-mono font-bold uppercase">
+                  <JobStatus id={g.id} onDone={onChange} />
+                </div>
               )}
             </div>
             <div className="flex items-center justify-between gap-2 p-2 font-mono text-sm font-bold">
