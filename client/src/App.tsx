@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react'
+import { Route, Routes } from 'react-router'
 import { EndpointHealth } from './EndpointHealth'
 import { Gallery } from './Gallery'
 import { Generator } from './Generator'
 import { Header } from './Header'
+import { ImagePage, ModelPage } from './ViewerPages'
 
-export default function App() {
+function HomePage() {
   const [reloadKey, setReloadKey] = useState(0)
   const reload = useCallback(() => setReloadKey((k) => k + 1), [])
 
@@ -15,5 +17,16 @@ export default function App() {
       <Generator onSent={reload} />
       <Gallery reloadKey={reloadKey} onChange={reload} />
     </main>
+  )
+}
+
+// Page routes. The server must serve index.html for each of them (server/server.ts).
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/models/:id" element={<ModelPage />} />
+      <Route path="/images/:id" element={<ImagePage />} />
+    </Routes>
   )
 }

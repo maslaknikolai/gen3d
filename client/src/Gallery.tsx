@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useMatch, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { callApi } from './api'
 import { JobStatus } from './JobStatus'
-import { Modal } from './Modal'
 import { ModelView } from './ModelView'
 import { Spinner } from './Spinner'
 
@@ -18,19 +17,6 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const location = useLocation()
-  const modelId = useMatch('/models/:id')?.params.id
-  const imageId = useMatch('/images/:id')?.params.id
-  const openedModel = generations.find((g) => g.id === modelId)
-  const openedImage = generations.find((g) => g.id === imageId)
-
-  function closeModal() {
-    if (location.key === 'default') {
-      navigate('/', { replace: true })
-    } else {
-      navigate(-1)
-    }
-  }
 
   useEffect(() => {
     setLoading(true)
@@ -81,16 +67,6 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
           </article>
         ))}
       </div>
-      {openedModel?.modelUrl && (
-        <Modal onClose={closeModal}>
-          <ModelView key={openedModel.id} src={openedModel.modelUrl} fullscreen />
-        </Modal>
-      )}
-      {openedImage && (
-        <Modal onClose={closeModal}>
-          <img src={openedImage.imageUrl} alt="Input image" className="size-full object-contain" />
-        </Modal>
-      )}
     </section>
   )
 }

@@ -127,6 +127,11 @@ app.get("/api/jobs/:id", async (req, res) => {
 });
 
 
+// A stable link for the image page. The signed URL in the list expires.
+app.get("/api/generations/:id/image", async (req, res) => {
+  res.redirect(await signUrl(`${req.params.id}.image`));
+});
+
 app.get("/api/generations/:id/model.glb", async (req, res) => {
   const file = await s3.send(new GetObjectCommand({ Bucket: s3Config.bucketName, Key: `${req.params.id}.glb` }));
   res.type("model/gltf-binary");
