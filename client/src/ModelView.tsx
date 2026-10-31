@@ -1,6 +1,7 @@
 import '@google/model-viewer'
 import type { ModelViewerElement } from '@google/model-viewer'
 import { useEffect, useRef, useState } from 'react'
+import { Spinner } from './Spinner'
 
 // The mesh has no texture and renders almost white.
 const CLAY: [number, number, number, number] = [0.78, 0.74, 0.68, 1]
@@ -10,6 +11,7 @@ export function ModelView({ src, fullscreen = false, onOpen }: { src: string; fu
   const ref = useRef<ModelViewerElement>(null)
   const pressedAt = useRef({ x: 0, y: 0 })
   const [shown, setShown] = useState(fullscreen)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const viewer = ref.current
@@ -22,6 +24,7 @@ export function ModelView({ src, fullscreen = false, onOpen }: { src: string; fu
         material.pbrMetallicRoughness.setMetallicFactor(0)
         material.pbrMetallicRoughness.setRoughnessFactor(0.45)
       }
+      setLoaded(true)
     }
     viewer.addEventListener('load', paint)
     return () => viewer.removeEventListener('load', paint)
@@ -48,6 +51,11 @@ export function ModelView({ src, fullscreen = false, onOpen }: { src: string; fu
         }}
         className={`block w-full ${fullscreen ? 'h-full' : 'aspect-square h-auto'} bg-[radial-gradient(#ffffff30_1px,transparent_1px),radial-gradient(circle,#3a3a3a,#000_75%)] [background-size:18px_18px,100%_100%]`}
       />
+      {shown && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-4xl text-white">
+          <Spinner visible={!loaded} />
+        </div>
+      )}
       {!shown && (
         <button
           type="button"
