@@ -4,7 +4,7 @@ import { JobStatus } from './JobStatus'
 import { ModelView } from './ModelView'
 import { Spinner } from './Spinner'
 
-type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
+export type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
 // No colons: Windows does not allow them in file names.
 function makeFileName(createdAt: string): string {
@@ -50,7 +50,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
                 <ModelView src={g.modelUrl} />
               ) : (
                 <div className="flex aspect-square overflow-hidden p-2 font-mono text-sm font-bold uppercase">
-                  <JobStatus id={g.id} onDone={onChange} />
+                  <JobStatus generation={g} onDone={onChange} />
                 </div>
               )}
             </div>

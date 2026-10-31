@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { callApi } from './api'
+import type { Generation } from './Gallery'
 import { Spinner } from './Spinner'
 
 const POLL_MS = 3000
@@ -8,7 +9,6 @@ const FINAL = ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMED_OUT']
 type Job = {
   status: string
   error?: string
-  workerId?: string
   delayTime?: number
   executionTime?: number
   logs: string[]
@@ -23,7 +23,7 @@ function getLastState(line: string): string {
   return line.split('\r').filter(Boolean).pop() ?? ''
 }
 
-export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
+export function JobStatus({ generation, onDone }: { generation: Generation; onDone: () => void }) {
   const [job, setJob] = useState<Job>()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
     async function poll() {
       setLoading(true)
       try {
-        const next = await callApi<Job>(`/api/jobs/${id}`)
+        const next = await callApi<Job>(`/api/jobs/${generation.id}`)
         setJob(next)
         setError('')
         if (next.status === 'COMPLETED') {
@@ -53,7 +53,7 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
     }
     poll()
     return () => clearTimeout(timer)
-  }, [id, onDone])
+  }, [generation.id, onDone])
 
   if (error) {
     return <div>{error}</div>
@@ -62,6 +62,11 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
     return <Spinner />
   }
   const logs = job.logs.map(getLastState)
+
+  const runMs =
+    job.executionTime ??
+    (job.status === 'IN_PROGRESS' ? Date.now() - Date.parse(generation.createdAt) - (job.delayTime ?? 0) : undefined)
+
   return (
     <div className="flex h-full w-full flex-col gap-2 text-left">
       <div className="flex items-center gap-2">
@@ -70,7 +75,7 @@ export function JobStatus({ id, onDone }: { id: string; onDone: () => void }) {
         {loading && <Spinner />}
       </div>
       <div className="text-xs normal-case">
-        worker {job.workerId ?? '-'} · queue {formatSeconds(job.delayTime)} · run {formatSeconds(job.executionTime)}
+        waited for GPU {formatSeconds(job.delayTime)} · generating {formatSeconds(runMs)}
       </div>
       {logs.length > 0 && (
         <pre className="min-h-0 flex-1 overflow-auto bg-black p-2 text-[10px] leading-tight font-normal whitespace-pre-wrap normal-case text-white">
