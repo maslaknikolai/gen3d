@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useMatch, useNavigate } from 'react-router'
 import { callApi } from './api'
 import { JobStatus } from './JobStatus'
 import { ModelView } from './ModelView'
 import { Spinner } from './Spinner'
+import { useEscapeKey } from './useEscapeKey'
 
 export type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
@@ -15,6 +17,20 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
   const [generations, setGenerations] = useState<Generation[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const openId = useMatch('/models/:id')?.params.id
+  const opened = generations.find((g) => g.id === openId)
+
+  function closeModal() {
+    if (location.key === 'default') {
+      navigate('/', { replace: true })
+    } else {
+      navigate(-1)
+    }
+  }
+
+  useEscapeKey(Boolean(openId), closeModal)
 
   useEffect(() => {
     setLoading(true)
@@ -47,7 +63,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
                 <img src={g.imageUrl} alt="Input image" className="aspect-square w-full object-contain" />
               </a>
               {g.modelUrl ? (
-                <ModelView src={g.modelUrl} />
+                <ModelView src={g.modelUrl} onOpen={() => navigate(`/models/${g.id}`)} />
               ) : (
                 <div className="flex aspect-square overflow-hidden p-2 font-mono text-sm font-bold uppercase">
                   <JobStatus generation={g} onDone={onChange} />
@@ -65,6 +81,19 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
           </article>
         ))}
       </div>
+      {opened?.modelUrl && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <ModelView key={opened.id} src={opened.modelUrl} fullscreen />
+          <button
+            type="button"
+            onClick={closeModal}
+            aria-label="Close 3D view"
+            className="absolute top-4 right-4 size-12 cursor-pointer border-4 border-white bg-black text-2xl font-black text-white hover:bg-white hover:text-black"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </section>
   )
 }

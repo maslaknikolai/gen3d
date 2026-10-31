@@ -50,7 +50,8 @@ type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: 
 const app = express();
 app.use(express.json({ limit: "20mb" }));
 
-app.use(express.static(new URL("../client/dist", import.meta.url).pathname));
+const CLIENT_DIST = new URL("../client/dist", import.meta.url).pathname;
+app.use(express.static(CLIENT_DIST));
 
 app.post("/api/jobs", async (req, res) => {
   const { image, resolution = 1024 } = req.body ?? {};
@@ -131,6 +132,9 @@ app.get("/api/generations/:id/model.glb", async (req, res) => {
   res.type("model/gltf-binary");
   Readable.fromWeb(file.Body!.transformToWebStream() as WebReadableStream).pipe(res);
 });
+
+// Page routes from client/src: serve the page so a direct link works.
+app.get("/models/:id", (_req, res) => res.sendFile(`${CLIENT_DIST}/index.html`));
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
