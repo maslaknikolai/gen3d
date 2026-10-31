@@ -1,3 +1,11 @@
-export function Spinner() {
-  return <span className="inline-block size-3 animate-spin border-2 border-current border-t-transparent" />
+// Stays in the page and fades, so it does not jump in and out.
+export function Spinner({ visible = true }: { visible?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block animate-spin leading-none font-black transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}
+    >
+      +
+    </span>
+  )
 }

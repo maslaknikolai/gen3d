@@ -37,7 +37,7 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-3 border-b-4 border-black pb-1 text-2xl font-black uppercase">
-        Generated {loading && <Spinner />}
+        Generated <Spinner visible={loading} />
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {generations.map((g) => (

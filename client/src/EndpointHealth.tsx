@@ -37,7 +37,7 @@ export function EndpointHealth() {
 
   return (
     <div className="relative border-4 border-black bg-black p-4 font-mono text-sm text-white">
-      {loading && <span className="absolute top-2 right-2"><Spinner /></span>}
+      <span className="absolute top-2 right-2"><Spinner visible={loading} /></span>
       {error && <div className="font-bold">Health error: {error}</div>}
       {!health && !error && 'Loading endpoint status...'}
       {health && renderRow('Jobs', health.jobs)}

@@ -72,7 +72,7 @@ export function JobStatus({ generation, onDone }: { generation: Generation; onDo
       <div className="flex items-center gap-2">
         {job.status}
         {job.error ? `: ${job.error}` : ''}
-        {loading && <Spinner />}
+        <Spinner visible={loading} />
       </div>
       <div className="text-xs normal-case">
         waited for GPU {formatSeconds(job.delayTime)} · generating {formatSeconds(runMs)}
