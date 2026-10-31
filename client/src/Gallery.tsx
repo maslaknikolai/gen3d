@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useMatch, useNavigate } from 'react-router'
+import { Link, useLocation, useMatch, useNavigate } from 'react-router'
 import { callApi } from './api'
 import { JobStatus } from './JobStatus'
+import { Modal } from './Modal'
 import { ModelView } from './ModelView'
 import { Spinner } from './Spinner'
-import { useEscapeKey } from './useEscapeKey'
 
 export type Generation = { id: string; createdAt: string; imageUrl: string; modelUrl?: string }
 
@@ -19,8 +19,10 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const openId = useMatch('/models/:id')?.params.id
-  const opened = generations.find((g) => g.id === openId)
+  const modelId = useMatch('/models/:id')?.params.id
+  const imageId = useMatch('/images/:id')?.params.id
+  const openedModel = generations.find((g) => g.id === modelId)
+  const openedImage = generations.find((g) => g.id === imageId)
 
   function closeModal() {
     if (location.key === 'default') {
@@ -29,8 +31,6 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
       navigate(-1)
     }
   }
-
-  useEscapeKey(Boolean(openId), closeModal)
 
   useEffect(() => {
     setLoading(true)
@@ -59,9 +59,9 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
         {generations.map((g) => (
           <article key={g.id} className="border-4 border-black">
             <div className="grid grid-cols-2 border-b-4 border-black">
-              <a href={g.imageUrl} target="_blank" rel="noreferrer" className="border-r-4 border-black">
+              <Link to={`/images/${g.id}`} className="border-r-4 border-black">
                 <img src={g.imageUrl} alt="Input image" className="aspect-square w-full object-contain" />
-              </a>
+              </Link>
               {g.modelUrl ? (
                 <ModelView src={g.modelUrl} onOpen={() => navigate(`/models/${g.id}`)} />
               ) : (
@@ -81,18 +81,15 @@ export function Gallery({ reloadKey, onChange }: { reloadKey: number; onChange: 
           </article>
         ))}
       </div>
-      {opened?.modelUrl && (
-        <div className="fixed inset-0 z-50 bg-black">
-          <ModelView key={opened.id} src={opened.modelUrl} fullscreen />
-          <button
-            type="button"
-            onClick={closeModal}
-            aria-label="Close 3D view"
-            className="absolute top-4 right-4 size-12 cursor-pointer border-4 border-white bg-black text-2xl font-black text-white hover:bg-white hover:text-black"
-          >
-            ✕
-          </button>
-        </div>
+      {openedModel?.modelUrl && (
+        <Modal onClose={closeModal}>
+          <ModelView key={openedModel.id} src={openedModel.modelUrl} fullscreen />
+        </Modal>
+      )}
+      {openedImage && (
+        <Modal onClose={closeModal}>
+          <img src={openedImage.imageUrl} alt="Input image" className="size-full object-contain" />
+        </Modal>
       )}
     </section>
   )

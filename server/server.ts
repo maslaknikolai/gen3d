@@ -134,7 +134,7 @@ app.get("/api/generations/:id/model.glb", async (req, res) => {
 });
 
 // Page routes from client/src: serve the page so a direct link works.
-app.get("/models/:id", (_req, res) => res.sendFile(`${CLIENT_DIST}/index.html`));
+app.get(["/models/:id", "/images/:id"], (_req, res) => res.sendFile(`${CLIENT_DIST}/index.html`));
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
